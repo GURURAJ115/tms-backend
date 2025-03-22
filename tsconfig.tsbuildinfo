@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/controllers/authcontroller.ts","./src/middleware/validaterequest.ts","./src/routes/authroutes.ts","./src/utils/qrcodeutils.ts","./src/validations/authvalidations.ts"],"version":"5.8.2"}
