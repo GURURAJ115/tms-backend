@@ -19,6 +19,7 @@ model User {
   qrCode      String?
   events      Event[]  @relation("UserEvents")
   tasks       Task[]   @relation("VolunteerTasks")
+  attendances EventAttendance[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -39,10 +40,13 @@ model Event {
   title       String
   description String
   date        DateTime
+  location    String
+  image       String
   createdBy   Admin    @relation("AdminEvents", fields: [adminId], references: [id])
   adminId     Int
   attendees   User[]   @relation("UserEvents")
   tasks       Task[]
+  attendances EventAttendance[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -57,4 +61,17 @@ model Task {
   volunteer   User?    @relation("VolunteerTasks", fields: [volunteerId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model EventAttendance {
+  id          Int      @id @default(autoincrement())
+  event       Event    @relation(fields: [eventId], references: [id])
+  eventId     Int
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+  attended    Boolean  @default(false)
+  attendedAt  DateTime?
+  createdAt   DateTime @default(now())
+  
+  @@unique([eventId, userId])
 }

@@ -1,5 +1,5 @@
 import express from 'express';
-import { login, requestOTP, signup } from '../controllers/authController';
+import { adminLogin, adminSignup, login, requestOTP, signup } from '../controllers/authController';
 import { validateRequest } from '../middleware/validateRequest';
 import { loginSchema, phoneSchema, signupSchema } from '../validations/authValidations';
 
@@ -11,8 +11,6 @@ router.post('/login', validateRequest(loginSchema), login);
 
 
 //admin auth routes
-
-router.post('/admin/request-signup',);
-router.post('/admin/verify-signup',);
-router.post('/admin/login',);
+router.post('/admin/signup',validateRequest(signupSchema),adminSignup);
+router.post('/admin/login',validateRequest(loginSchema),adminLogin);
 export default router;
