@@ -46,7 +46,7 @@ export const signup = async (req: Request, res: Response) => {
     }
 };
 
-export const login = async (req: Request, res: Response) : Promise<void>=> {
+export const login = async (req: Request, res: Response): Promise<void> => {
     try {
         const { phone, password } = req.body;
 
@@ -72,3 +72,51 @@ export const login = async (req: Request, res: Response) : Promise<void>=> {
         res.status(500).json({ message: 'Something went wrong', error });
     }
 };
+
+export const adminSignup = async (req: Request, res: Response) => {
+    const {phone, name, email, password} = req.body;
+
+    try{
+        const hashedPass = await bcrypt.hash(password,10);
+        
+        const admin = await prisma.admin.create({
+            data:{phone, name , email, password:hashedPass}
+        });
+        
+        const token = jwt.sign({adminId: admin.id, phone: admin.phone},JWT_SECRET,{expiresIn:"30d"});
+        
+        res.status(201).json({message: "admin created",admin,token});
+    }
+    catch(error){
+        res.status(500).json({message: "Something went wrong"});
+    }
+};
+
+export const adminLogin = async(req:Request, res: Response)=>{
+    try{
+        const {phone, password} = req.body;
+
+        const admin = await prisma.admin.findUnique({
+            where:{phone}
+        });
+
+        if(!admin){
+            res.status(404).json({message:"admin not found"});
+            return;
+        }
+
+        const isMatched = await bcrypt.compare(password, admin.password);
+
+        if(!isMatched){
+            res.status(401).json({message:"Invalid credtentials"});
+            return;
+        }
+
+        const token = jwt.sign({adminId: admin.id, phone: admin.phone},JWT_SECRET,{expiresIn:"30d"});
+
+        res.status(201).json({message:"Login successful",admin,token});
+    }
+    catch(error){
+        res.status(500).json({message:"Something went wrong"});
+    }
+}

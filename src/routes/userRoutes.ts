@@ -10,4 +10,11 @@ router.use(authenticateUser);
 router.get("/profile",getUserProfile);
 router.put("/profile",updateUserProfile);
 
+//events
+router.get('/events/upcoming',);
+router.get('/events/register/:eventId',);
+
+//apply for volunteer
+router.get('/volunteer/apply',);
+
 export default router;

@@ -9,4 +9,10 @@ router.post('/request-otp', validateRequest(phoneSchema), requestOTP);
 router.post('/signup', validateRequest(signupSchema), signup);
 router.post('/login', validateRequest(loginSchema), login);
 
+
+//admin auth routes
+
+router.post('/admin/request-signup',);
+router.post('/admin/verify-signup',);
+router.post('/admin/login',);
 export default router;

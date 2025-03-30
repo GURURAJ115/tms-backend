@@ -52,3 +52,11 @@ export const applyForVolunteer = async (req:Request, res: Response) =>{
         res.status(500).json({message: "Something went wrong",error});
     }
 };
+
+export const getUpcomingEvents = async(req:Request, res:Response)=>{
+
+}
+
+export const registerForEvent = async (req:Request,res:Response)=>{
+    
+}
