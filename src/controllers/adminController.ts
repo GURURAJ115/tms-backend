@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
+import { generateCSV } from "../utils/csvUtils";
 
 const prisma = new PrismaClient;
 
@@ -124,6 +125,8 @@ export const markAttendance = async(req: Request, res:Response) =>{
             return;
         }
 
+
+
         const registration = await prisma.event.findFirst({
             where: {id:eventId, attendees: {some: {id:userId}}}
         });
@@ -132,7 +135,25 @@ export const markAttendance = async(req: Request, res:Response) =>{
             res.status(400).json({message: "User not registererd for this event"});
         }
 
-        //add it to the new attendence db with userId and eventId.
+        const attendance = await prisma.eventAttendance.upsert({
+            where:{
+                eventId_userId:{
+                    eventId,
+                    userId
+                }
+            },
+            create: {
+                eventId,
+                userId,
+                attended: true,
+                attendedAt: new Date()
+            },
+            update:{
+                attended: true,
+                attendedAt: new Date()
+            }
+        });
+
         res.status(200).json({
             message: "Attendance confirmed",
             eventId,
@@ -147,6 +168,68 @@ export const markAttendance = async(req: Request, res:Response) =>{
     }
 };
 
+
+
+
+
 export const generateAttendanceReport= async(req: Request, res:Response) =>{
     //csv things......
-}
+    try{
+        const {startDate, endDate, eventId} = req.query;
+        const adminId = (req as any).admin?.adminId;
+
+        const events = await prisma.event.findMany({
+            where: {
+                adminId,
+                id: eventId ? parseInt(eventId as string) : undefined,
+                date: {
+                    gte: startDate? new Date(startDate as string) : undefined,
+                    lte: endDate? new Date(endDate as string): undefined
+                }
+            },
+            include: {
+                attendees: {
+                    select: {
+                        id: true,
+                        name: true,
+                        phone: true
+                    }
+                },
+                attendances: {
+                    include: {
+                        user: {
+                            select: {
+                                name: true,
+                                phone: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const reportData = events.flatMap(event=>
+            event.attendances.map(record=>({
+                eventId: event.id,
+                eventTitle: event.title,
+                eventDate: event.date.toISOString(),
+                userId: record.userId,
+                userName: record.user.name,
+                userPhone: record.user.phone,
+                attendanceTime: record.attendedAt?.toString(),
+                status: record.attended? "Present": "Absent"
+            }))
+        );
+        
+        const csv = generateCSV(reportData);
+        res.setHeader('Content-Type','text/csv');
+        res.setHeader('Content-Disposition','attachment; filename=attendance-report.csv');
+        res.status(200).send(csv);
+    }
+    catch(error){
+        res.status(500).json({
+            message: "Failed to generate report",
+            error: error instanceof Error ? error.message: error
+        });
+    }
+};

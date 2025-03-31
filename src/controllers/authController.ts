@@ -6,7 +6,8 @@ import jwt from 'jsonwebtoken';
 import { generateOTP } from '../utils/otpUtils';
 
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET_USER = process.env.JWT_SECRET_USER || 'your-secret-key';
+const JWT_SECRET_ADMIN = process.env.JWT_SECRET_ADMIN || 'your-secret-key';
 
 export const requestOTP = async (req: Request, res: Response) => {
     try {
@@ -36,7 +37,7 @@ export const signup = async (req: Request, res: Response) => {
             data: { phone, name, email, photo, password: hashedPassword, qrCode },
         });
 
-        const token = jwt.sign({ userId: user.id, phone: user.phone }, JWT_SECRET, {
+        const token = jwt.sign({ userId: user.id, phone: user.phone }, JWT_SECRET_USER, {
             expiresIn: '30d',
         });
 
@@ -63,7 +64,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ userId: user.id, phone: user.phone }, JWT_SECRET, {
+        const token = jwt.sign({ userId: user.id, phone: user.phone }, JWT_SECRET_USER, {
             expiresIn: '30d',
         });
 
@@ -83,7 +84,7 @@ export const adminSignup = async (req: Request, res: Response) => {
             data:{phone, name , email, password:hashedPass}
         });
         
-        const token = jwt.sign({adminId: admin.id, phone: admin.phone},JWT_SECRET,{expiresIn:"30d"});
+        const token = jwt.sign({adminId: admin.id, phone: admin.phone},JWT_SECRET_ADMIN,{expiresIn:"30d"});
         
         res.status(201).json({message: "admin created",admin,token});
     }
@@ -112,7 +113,7 @@ export const adminLogin = async(req:Request, res: Response)=>{
             return;
         }
 
-        const token = jwt.sign({adminId: admin.id, phone: admin.phone},JWT_SECRET,{expiresIn:"30d"});
+        const token = jwt.sign({adminId: admin.id, phone: admin.phone},JWT_SECRET_ADMIN,{expiresIn:"30d"});
 
         res.status(201).json({message:"Login successful",admin,token});
     }

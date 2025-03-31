@@ -54,9 +54,35 @@ export const applyForVolunteer = async (req:Request, res: Response) =>{
 };
 
 export const getUpcomingEvents = async(req:Request, res:Response)=>{
-
+    try{
+        const events = await prisma.event.findMany({
+            where: {date: {gte: new Date()}},
+            include: {createdBy: {select :{name: true}}}
+        });
+        res.status(200).json(events);
+    }
+    catch(error){
+        res.status(500).json({message: "Failed to fetch events", error})
+    }
 }
 
 export const registerForEvent = async (req:Request,res:Response)=>{
-    
+    try{
+        const userId = (req as any).user?.userId;
+        const eventId = parseInt(req.params.eventId);
+
+        await prisma.event.update({
+            where: {id: eventId},
+            data: {attendees: {connect: {id: userId}}}
+        });
+
+        res.status(200).json({
+            message: "Registered for the event successfully"
+        });
+    }
+    catch(error){
+        res.status(500).json({
+            message: "Registration failed", error
+        });
+    }
 }
